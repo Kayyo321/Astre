@@ -14,6 +14,7 @@ public enum TokenType {
     Star,
     Modulo,
     Power,
+    QuestionMark,
 
     Bang,
     BangEqual,

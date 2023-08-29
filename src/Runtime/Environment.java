@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import LexicalAnalysis.*;
+import Parsing.Stmt.Modifier;
 
 public class Environment {
     private final Map<String, Object> values = new HashMap<>();
+    private final Map<String, Modifier> modifiers = new HashMap<>();
     public final Environment enclosing;
 
     public Environment() {
@@ -27,8 +29,13 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    public void define(String name, Object value) {
+    public void define(Token keyword, Modifier modifier, String name, Object value) {
         values.put(name, value);
+        modifiers.put(name, modifier);
+
+        if ((modifier != Modifier.Nullable && modifier != Modifier.Both) && value == null) {
+            throw new RuntimeError(keyword, "Cannot assign `nothing` to variable that doesn't accept the `nothing` value (put a `?` after `let` to allow it).");
+        }
     }
 
     public Object getAt(int distance, String name) {
@@ -46,6 +53,12 @@ public class Environment {
 
     public void assign(Token name, Object value) {
         if (values.containsKey(name.lexeme)) {
+            if (modifiers.get(name.lexeme) == Modifier.Constant || modifiers.get(name.lexeme) == Modifier.Both) {
+                throw new RuntimeError(name, "Cannot assign variable which was declared constant");
+            }
+            if (modifiers.get(name.lexeme) != Modifier.Nullable && value == null) {
+                throw new RuntimeError(name, "Cannot assign variable which doesn't accept `nothing` values (put `?` after `let` to allow it).");
+            }
             values.put(name.lexeme, value);
             return;
         } else if (enclosing != null) {

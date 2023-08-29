@@ -6,19 +6,14 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dbfc7cd3-3c51-4b7a-852b-06d074cf4d67" name="Changes" comment="Changed default branch from origin -&gt; master">
-      <change afterPath="$PROJECT_DIR$/examples/test0.astre" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Runtime/AstreInstance.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Runtime/AstreStruct.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/artifacts/Astre_jar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/artifacts/Astre_jar.xml" afterDir="false" />
+    <list default="true" id="dbfc7cd3-3c51-4b7a-852b-06d074cf4d67" name="Changes" comment="Added let modifiers: ! and ?.&#10;&#10;let! constant = 100000;&#10;let? nullable = nothing;&#10;&#10;let x = nothing; // runtime error: x was defined without warning us that it could hold `nothing`.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ASTAnalysis/Resolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ASTAnalysis/Resolver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Astre/Astre.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Astre/Astre.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/LexicalAnalysis/Token.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/LexicalAnalysis/Token.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Parsing/Expr.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parsing/Expr.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/LexicalAnalysis/Scanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/LexicalAnalysis/Scanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/LexicalAnalysis/TokenType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/LexicalAnalysis/TokenType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Parsing/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parsing/Parser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Parsing/Stmt.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parsing/Stmt.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Runtime/AstreFunction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Runtime/AstreFunction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Runtime/Environment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Runtime/Environment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Runtime/Interpreter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Runtime/Interpreter.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,12 +96,32 @@
       <option name="project" value="LOCAL" />
       <updated>1693327138083</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Added OOP">
+      <created>1693337175325</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1693337175325</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Working 1.0 (no OOP lol)" />
     <MESSAGE value="Changed default branch from origin -&gt; master" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed default branch from origin -&gt; master" />
+    <MESSAGE value="Added OOP" />
+    <MESSAGE value="Added let modifiers: ! and ?.&#10;&#10;let! constant = 100000;&#10;let? nullable = nothing;&#10;&#10;let x = nothing; // runtime error: x was defined without warning us that it could hold `nothing`." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added let modifiers: ! and ?.&#10;&#10;let! constant = 100000;&#10;let? nullable = nothing;&#10;&#10;let x = nothing; // runtime error: x was defined without warning us that it could hold `nothing`." />
   </component>
 </project>

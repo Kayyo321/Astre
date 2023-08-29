@@ -10,7 +10,7 @@ import static LexicalAnalysis.TokenType.*;
 public class Scanner {
     private final String code;
     private final List<Token> tokens = new ArrayList<>();
-    private final Map<String, TokenType> keywords = new HashMap<>();;
+    private final Map<String, TokenType> keywords = new HashMap<>();
     private int start = 0, current = start, line = 1;
 
     public Scanner(String code) {
@@ -58,6 +58,7 @@ public class Scanner {
             case '*': addToken(Star); break;
             case '%': addToken(Modulo); break;
             case '^': addToken(Power); break;
+            case '?': addToken(QuestionMark); break;
             case '!': addToken(match('=') ? BangEqual : Bang); break;
             case '=': addToken(match('=') ? EqualEqual : Equal); break;
             case '<': addToken(match('=') ? LessEqual : Less); break;

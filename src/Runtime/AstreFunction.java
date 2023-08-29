@@ -23,7 +23,7 @@ public class AstreFunction implements AstreCallable {
 
     public AstreFunction bind(final AstreInstance instance) {
         final Environment environment = new Environment(closure);
-        environment.define("self", instance);
+        environment.define(null, Stmt.Modifier.Constant, "self", instance);
         return new AstreFunction(declaration, environment, isAnew);
     }
 
@@ -36,7 +36,7 @@ public class AstreFunction implements AstreCallable {
     public Object call(Interpreter interpreter, List<Object> arguments) {
         final Environment environment = new Environment(closure);
         for (int i = 0; i < declaration.params.size(); ++i) {
-            environment.define(declaration.params.get(i).lexeme, arguments.get(i));
+            environment.define(null, Stmt.Modifier.None, declaration.params.get(i).lexeme, arguments.get(i));
         }
 
         try {

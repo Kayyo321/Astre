@@ -123,8 +123,17 @@ public abstract sealed class Stmt {
         public final Expr value;
     }
 
+    public enum Modifier {
+        None,
+        Constant,
+        Nullable,
+        Both
+    }
+
     public static final class Let extends Stmt {
-        public Let(Token name, Expr init) {
+        public Let(Token keyword, Modifier mod, Token name, Expr init) {
+            this.keyword = keyword;
+            this.mod = mod;
             this.name = name;
             this.init = init;
         }
@@ -136,6 +145,8 @@ public abstract sealed class Stmt {
 
         public final Token name;
         public final Expr init;
+        public final Modifier mod;
+        public final Token keyword;
     }
 
     public static final class While extends Stmt {

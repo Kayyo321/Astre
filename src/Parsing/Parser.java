@@ -29,10 +29,6 @@ public class Parser {
 
     private Stmt declaration() {
         try {
-            if (match(Let)) {
-                return letDeclaration();
-            }
-
             return statement();
         } catch (ParseError err) {
             synchronize();
@@ -41,6 +37,19 @@ public class Parser {
     }
 
     private Stmt letDeclaration() {
+        final Token keyword = eat();
+
+        Stmt.Modifier mod = Stmt.Modifier.None;
+
+        if (tokens.get(current).type == Bang) {
+            eat();
+            mod = Stmt.Modifier.Constant;
+        }
+        if (tokens.get(current).type == QuestionMark) {
+            eat();
+            mod = (mod == Stmt.Modifier.Constant) ? Stmt.Modifier.Both : Stmt.Modifier.Nullable;
+        }
+
         final Token name = consume(Identifier, "Expect variable name.");
 
         final Expr init;
@@ -52,40 +61,22 @@ public class Parser {
 
         consume(Semicolon, "Expect `;` after variable-declaration.");
 
-        return new Stmt.Let(name, init);
+        return new Stmt.Let(keyword, mod, name, init);
     }
 
     private Stmt statement() {
-        switch (tokens.get(current).type) {
-            case Struct -> {
-                return structStmt();
-            }
-            case Print -> {
-                return printStmt();
-            }
-            case If -> {
-                return ifStmt();
-            }
-            case While -> {
-                return whileStmt();
-            }
-            case For -> {
-                return forStmt();
-            }
-            case Function -> {
-                return function(false);
-            }
-            case Return -> {
-                return returnStmt();
-            }
-            case LBrace -> {
-                return new Stmt.Block(block());
-            }
-            default -> {
-            }
-        }
-
-        return expressionStmt(false);
+        return switch (tokens.get(current).type) {
+            case Let -> letDeclaration();
+            case Struct -> structStmt();
+            case Print -> printStmt();
+            case If -> ifStmt();
+            case While -> whileStmt();
+            case For -> forStmt();
+            case Function -> function(false);
+            case Return -> returnStmt();
+            case LBrace -> new Stmt.Block(block());
+            default -> expressionStmt(false);
+        };
     }
 
     private Stmt structStmt() {
@@ -444,7 +435,6 @@ public class Parser {
                     return;
                 }
                 default -> {
-                    break;
                 }
             }
 

@@ -17,7 +17,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public final Map<Expr, Integer> locals = new HashMap<>();
 
     public Interpreter() {
-        globals.define("clock", new AstreCallable() {
+        globals.define(null, Modifier.Constant, "clock", new AstreCallable() {
             @Override
             public int arity() { return 0; }
 
@@ -358,11 +358,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             superStruct = null;
         }
 
-        environment.define(stmt.name.lexeme, null);
+        environment.define(stmt.name, Modifier.None, stmt.name.lexeme, null);
 
         if (stmt.superStruct != null) {
             environment = new Environment(environment);
-            environment.define("super", superStruct);
+            environment.define(stmt.name, Modifier.Constant, "super", superStruct);
         }
 
         final Map<String, AstreFunction> methods = new HashMap<>();
@@ -381,7 +381,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Function stmt) {
-        environment.define(stmt.name.lexeme, new AstreFunction(stmt, environment));
+        environment.define(stmt.name, Modifier.None, stmt.name.lexeme, new AstreFunction(stmt, environment));
         return null;
     }
 
@@ -408,7 +408,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitLetStmt(Let stmt) {
-        environment.define(stmt.name.lexeme, (stmt.init != null) ? evaluate(stmt.init) : null);
+        environment.define(stmt.keyword, stmt.mod, stmt.name.lexeme, (stmt.init != null) ? evaluate(stmt.init) : null);
         return null;
     }
 
