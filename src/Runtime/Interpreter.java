@@ -358,7 +358,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             superStruct = null;
         }
 
-        environment.define(stmt.name, Modifier.None, stmt.name.lexeme, null);
+        environment.define(stmt.name, Modifier.Nullable, stmt.name.lexeme, null);
 
         if (stmt.superStruct != null) {
             environment = new Environment(environment);
