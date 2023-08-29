@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Astre:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Astre_jar</output-path>
+    <root id="archive" name="Astre.jar">
+      <element id="module-output" name="Astre" />
+    </root>
+  </artifact>
+</component>
