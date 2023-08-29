@@ -42,7 +42,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private void execute(Stmt stmt) {
-        stmt.accept(this);
+        final Object value = stmt.accept(this);
+        if (Astre.traceStmt) {
+            System.out.println(value);
+        }
     }
 
     public void resolve(final Expr expr, final int depth) {
@@ -265,8 +268,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitGetExpr(Get expr) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitGetExpr'");
+        if (evaluate(expr.obj) instanceof final AstreInstance obj) {
+            return obj.get(expr.name);
+        }
+
+        throw new RuntimeError(expr.name, "Only instances have properties");
     }
 
     @Override
@@ -289,20 +295,29 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitSetExpr(Set expr) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitSetExpr'");
+        if (evaluate(expr.obj) instanceof final AstreInstance object) {
+            return object.set(expr.name, evaluate(expr.value));
+        }
+
+        throw new RuntimeError(expr.name, "Only instances have fields.");
     }
 
     @Override
     public Object visitSuperExpr(Super expr) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitSuperExpr'");
+        final int distance = locals.get(expr);
+        final AstreStruct superStruct = (AstreStruct)environment.getAt(distance, "super");
+        final AstreInstance obj = (AstreInstance)environment.getAt(distance-1, "self");
+        final AstreFunction method = superStruct.findMethod(expr.method.lexeme);
+        if (method == null) {
+            throw new RuntimeError(expr.method, "Undefined property `" + expr.method.lexeme + "`.");
+        }
+
+        return method.bind(obj);
     }
 
     @Override
     public Object visitSelfExpr(Self expr) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitSelfExpr'");
+        return lookupVariable(expr.keyword, expr);
     }
 
     @Override
@@ -333,8 +348,35 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitStructStmt(Struct stmt) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitStructStmt'");
+        final Object superStruct;
+        if (stmt.superStruct != null) {
+            superStruct = evaluate(stmt.superStruct);
+            if (!(superStruct instanceof AstreStruct)) {
+                throw new RuntimeError(stmt.superStruct.name, "Super-Struct must be a struct");
+            }
+        } else {
+            superStruct = null;
+        }
+
+        environment.define(stmt.name.lexeme, null);
+
+        if (stmt.superStruct != null) {
+            environment = new Environment(environment);
+            environment.define("super", superStruct);
+        }
+
+        final Map<String, AstreFunction> methods = new HashMap<>();
+        for (final Stmt.Function method : stmt.methods) {
+            methods.put(method.name.lexeme, new AstreFunction(method, environment, method.name.lexeme.equals("anew")));
+        }
+
+        if (superStruct != null) {
+            environment = environment.enclosing;
+        }
+
+        environment.assign(stmt.name, new AstreStruct(stmt.name.lexeme, (AstreStruct)superStruct, methods));
+
+        return null;
     }
 
     @Override

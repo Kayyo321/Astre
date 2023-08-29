@@ -3,6 +3,7 @@ package Astre;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import ASTAnalysis.Resolver;
@@ -14,13 +15,46 @@ public class Astre {
     private static boolean hadError = false, hadRuntimeError = false;
     private static final Interpreter astre = new Interpreter();
 
+    public static boolean traceTokens=false, traceStmt=false;
+
     public static void main(String[] args) throws IOException {
-        if (args.length > 1) {
-            System.out.println("Usage: astre [script?]");
-        } else if (args.length == 1) {
-            runFile(args[0]);
-        } else {
+        if (args.length == 0) {
             runPrompt();
+            return;
+        }
+
+        final List<String> files = new ArrayList<>(), flags = new ArrayList<>();
+
+        for (final String argument : args) {
+            if (argument.charAt(0) == '-') {
+                flags.add(argument);
+            } else {
+                files.add(argument);
+            }
+        }
+
+        if (!flags.isEmpty()) {
+            parseFlags(flags);
+        }
+
+        if (files.isEmpty()) {
+            System.err.println("Astre cannot run nothing! (no files given)");
+            System.exit(1);
+        }
+
+        runFiles(files);
+    }
+
+    private static void parseFlags(final List<String> flags) {
+        for (final String flag : flags) {
+            switch (flag) {
+                case "-tokentrace" -> traceTokens = true;
+                case "-tracestmt" -> traceStmt = true;
+                default -> {
+                    System.err.println("Didn't expect flag: " + flag);
+                    System.exit(1);
+                }
+            }
         }
     }
 
@@ -30,15 +64,21 @@ public class Astre {
 
     public static void error(Token token, String errMsg) {
         if (token.type == TokenType.EOF) {
-            report(token.line, " at end", errMsg);
+            report(token.line, " at end-of-file", errMsg);
         } else {
-            report(token.line, " at '" + token.lexeme + "'", errMsg);
+            report(token.line, "at `" + token.lexeme + "`", errMsg);
         }
     }
 
     public static void error(RuntimeError err) {
         System.err.println(err.getMessage() + "\n[line " + err.token.line + "]");
         hadRuntimeError = true;
+    }
+
+    private static void runFiles(List<String> files) throws IOException {
+        for (final String file: files) {
+            runFile(file);
+        }
     }
 
     private static void runFile(String file) throws IOException {
@@ -69,9 +109,15 @@ public class Astre {
         }
     }
 
-    private static void run(String code) throws IOException {
+    private static void run(String code) {
         final Scanner lexer = new Scanner(code);
         final List<Token> tokens = lexer.scan();
+
+        if (traceTokens) {
+            for (final Token trace : tokens) {
+                System.out.println(trace);
+            }
+        }
 
         final Parser parser = new Parser(tokens);
         final List<Stmt> ast = parser.parse();

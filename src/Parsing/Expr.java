@@ -80,7 +80,7 @@ public abstract sealed class Expr {
             return visitor.visitGetExpr(this);
         }
 
-        public final Object obj;
+        public final Expr obj;
         public final Token name;
     }
 
@@ -155,8 +155,8 @@ public abstract sealed class Expr {
             return visitor.visitSuperExpr(this);
         }
 
-        final Token keyword;
-        final Token method;
+        public final Token keyword;
+        public final Token method;
     }
 
     public static final class Self extends Expr {

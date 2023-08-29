@@ -1,0 +1,26 @@
+struct Animal {
+    anew(name, age) {
+        self.name = name;
+        self.age = age;
+    }
+
+    stats() {
+        print "{" + self.name + ", " + self.age + "}";
+    }
+}
+
+struct Dog derives Animal {
+    anew(name, age, breed) {
+        super(name, age);
+        self.breed = breed;
+    }
+
+    stats() {
+        super.stats();
+        print "+ {" + self.breed + "}";
+    }
+}
+
+let my_dog = Dog("Roxy", 3, "French Bulldog");
+
+my_dog.stats();

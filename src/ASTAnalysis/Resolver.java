@@ -15,12 +15,21 @@ import Runtime.*;
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private enum FunctionType {
         None,
-        Some
+        Func,
+        Anew,
+        Method
+    }
+
+    private enum StructType {
+        None,
+        Struct,
+        SubStruct
     }
 
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes;
     private FunctionType currentFunction = FunctionType.None;
+    private StructType currentStruct = StructType.None;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -59,7 +68,40 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitStructStmt(Struct stmt) {
-        return interpreter.visitStructStmt(stmt);
+        final StructType enclosingStruct = currentStruct;
+        currentStruct = StructType.Struct;
+
+        declare(stmt.name);
+        define(stmt.name);
+
+        if (stmt.superStruct != null) {
+            currentStruct = StructType.SubStruct;
+
+            if (stmt.name.lexeme.equals(stmt.superStruct.name.lexeme)) {
+                Astre.error(stmt.superStruct.name, "A struct can't derive itself");
+            }
+            resolve(stmt.superStruct);
+
+            beginScope();
+            scopes.peek().put("super", true);
+        }
+
+        beginScope();
+        scopes.peek().put("self", true);
+
+        for (final Stmt.Function method : stmt.methods) {
+            resolveFunction(method, (method.name.lexeme.equals("anew")) ? FunctionType.Anew : FunctionType.Method);
+        }
+
+        endScope();
+
+        if (stmt.superStruct != null) {
+            endScope();
+        }
+
+        currentStruct = enclosingStruct;
+
+        return null;
     }
 
     @Override
@@ -72,13 +114,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitFunctionStmt(Function stmt) {
         declare(stmt.name);
         define(stmt.name);
-        resolveFunction(stmt);
+        resolveFunction(stmt, FunctionType.Func);
         return null;
     }
 
-    private void resolveFunction(Function stmt) {
+    private void resolveFunction(Function stmt, FunctionType type) {
         final FunctionType enclosingFunction = currentFunction;
-        currentFunction = FunctionType.Some;
+        currentFunction = type;
         beginScope();
         for (final Token param : stmt.params) {
             declare(param);
@@ -112,6 +154,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.Anew) {
+                Astre.error(stmt.keyword, "Can't return a value from `anew` initializer.");
+            }
             resolve(stmt.value);
         }
 
@@ -201,7 +246,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitGetExpr(Get expr) {
-        interpreter.visitGetExpr(expr);
+        resolve(expr.obj);
         return null;
     }
 
@@ -224,19 +269,28 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitSetExpr(Set expr) {
-        interpreter.visitSetExpr(expr);
+        resolve(expr.value);
+        resolve(expr.obj);
         return null;
     }
 
     @Override
     public Void visitSuperExpr(Super expr) {
-        interpreter.visitSuperExpr(expr);
+        if (currentStruct == StructType.None) {
+            Astre.error(expr.keyword, "Can't user `super` outside of a struct.");
+        } else if (currentStruct != StructType.SubStruct) {
+            Astre.error(expr.keyword, "Cant' use `super` in a struct with no super-struct");
+        }
+        resolveLocal(expr, expr.keyword);
         return null;
     }
 
     @Override
     public Void visitSelfExpr(Self expr) {
-        interpreter.visitSelfExpr(expr);
+        if (currentStruct == StructType.None) {
+            Astre.error(expr.keyword, "Can't use `self` keyword outside of a struct.");
+        }
+        resolveLocal(expr, expr.keyword);
         return null;
     }
 

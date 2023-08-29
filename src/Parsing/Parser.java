@@ -57,6 +57,9 @@ public class Parser {
 
     private Stmt statement() {
         switch (tokens.get(current).type) {
+            case Struct -> {
+                return structStmt();
+            }
             case Print -> {
                 return printStmt();
             }
@@ -70,7 +73,7 @@ public class Parser {
                 return forStmt();
             }
             case Function -> {
-                return function();
+                return function(false);
             }
             case Return -> {
                 return returnStmt();
@@ -83,6 +86,29 @@ public class Parser {
         }
 
         return expressionStmt(false);
+    }
+
+    private Stmt structStmt() {
+        eat();
+        final Token name = consume(Identifier, "Expect struct-name after struct declaration.");
+        final Expr.Variable superClass;
+        if (match(Derives)) {
+            consume(Identifier, "Expect super-class name.");
+            superClass = new Expr.Variable(previous());
+        } else {
+            superClass = null;
+        }
+        final List<Stmt.Function> methods = new ArrayList<>();
+
+        consume(LBrace, "Expect `{` after struct-name");
+
+        while (!check(RBrace) && !isAtEnd()) {
+            methods.add((Stmt.Function)function(true));
+        }
+
+        consume(RBrace, "Expect `}` after struct body.");
+
+        return new Stmt.Struct(name, superClass, methods);
     }
 
     private Stmt printStmt() {
@@ -167,8 +193,8 @@ public class Parser {
         return new Stmt.For(init, condition, increment, body);
     }
 
-    private Stmt function() {
-        eat();
+    private Stmt function(final boolean method) {
+        if (!method) eat();
         final Token name = consume(Identifier, "Expect " + "func" + " name.");
         consume(LParen, "Expect `(` after " + "func" + " name.");
         final List<Token> params = new ArrayList<>();
@@ -211,19 +237,17 @@ public class Parser {
     }
 
     private Expr expression() {
-        return assignment();
-    }
-
-    private Expr assignment() {
         Expr expr = or();
 
         if (match(Equal)) {
             final Token equals = previous();
-            final Expr value = assignment();
+            final Expr value = expression();
 
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable)expr).name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof final Expr.Get get) {
+                return new Expr.Set(get.obj, get.name, value);
             }
 
             throw error(equals, "Invalid assignment target.");
@@ -334,12 +358,18 @@ public class Parser {
 
     private Expr call() {
         Expr expr = primary();
+        boolean leave = false;
+        Token name;
 
-        while (true) {
-            if (match(LParen)) {
-                expr = finishCall(expr);
-            } else {
-                break;
+        while (!leave) {
+            switch (tokens.get(current).type) {
+                case LParen -> expr = finishCall(expr);
+                case Dot -> {
+                    eat();
+                    name = consume(Identifier, "Expect property name after `.`");
+                    expr = new Expr.Get(expr, name);
+                }
+                default -> leave = true;
             }
         }
 
@@ -348,6 +378,10 @@ public class Parser {
 
     private Expr finishCall(Expr callee) {
         final List<Expr> args = new ArrayList<>();
+
+        if (tokens.get(current).type == LParen) {
+            consume(LParen, "NEVER HERE");
+        }
 
         if (!check(RParen)) {
             do {
@@ -365,8 +399,7 @@ public class Parser {
     private Expr primary() {
         switch (tokens.get(current).type) {
             case Identifier -> {
-                eat();
-                return new Expr.Variable(previous());
+                return new Expr.Variable(eat());
             }
             case False -> {
                 eat();
@@ -381,8 +414,16 @@ public class Parser {
                 return new Expr.Literal(null);
             }
             case Number, String -> {
-                eat();
-                return new Expr.Literal(previous().literal);
+                return new Expr.Literal(eat().literal);
+            }
+            case Self -> {
+                return new Expr.Self(eat());
+            }
+            case Super -> {
+                final Token keyword = eat();
+                consume(Dot, "Expect `.` after `super`.");
+                final Token method = consume(Identifier, "Expect superclass method-name");
+                return new Expr.Super(keyword, method);
             }
             case LParen -> {
                 eat();
@@ -403,6 +444,7 @@ public class Parser {
                     return;
                 }
                 default -> {
+                    break;
                 }
             }
 

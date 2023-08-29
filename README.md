@@ -16,7 +16,38 @@ This project is developed & maintained by Sullivan Baczynski-Bruce & Wahid Hussa
 
 - [x] Lexical Analysis (Sully)
 - [x] Parsing (Sully)
-- [ ] Intermediate Code Representation (Sully)
-- [x] Runtime [Currently interpreted (Sully)]
+- [x] Runtime (Sully)
 - [ ] Standard Library (Wahid)
       
+# How-To
+
+## Variables
+
+In Astre, variables are defined using the `let` keyword. 
+
+for example:
+
+```let x = 1 + 2 * 3;``` (7)
+
+to declare a variable as constant, use `!` after `let`.
+
+for example:
+
+```let! my_name = 'Sullivan';```
+
+to allow a variable to contain `nothing` (otherwise known as `nil`, or `null`), add `?` after `let`.
+
+for example:
+
+```
+let? my_age = nothing;
+print my_age; // nothing
+my_age = 14;
+print my_age; // 14
+```
+
+you can chain these two operators.
+
+for example:
+
+```let!? my_variable = nothing; // constant 'nothing' value```
