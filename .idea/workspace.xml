@@ -6,9 +6,18 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dbfc7cd3-3c51-4b7a-852b-06d074cf4d67" name="Changes" comment="Added let modifiers: ! and ?.&#10;&#10;let! constant = 100000;&#10;let? nullable = nothing;&#10;&#10;let x = nothing; // runtime error: x was defined without warning us that it could hold `nothing`.">
+    <list default="true" id="dbfc7cd3-3c51-4b7a-852b-06d074cf4d67" name="Changes" comment="Fixed non-nullable params and updated README.md">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/io_example.astre" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/linked_list.astre" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Runtime/StdLib/IO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Runtime/StdLib/ListLib.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Runtime/StdLib/Math.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ASTAnalysis/Resolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ASTAnalysis/Resolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Astre/Astre.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Astre/Astre.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Parsing/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parsing/Parser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Parsing/Stmt.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Parsing/Stmt.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Runtime/AstreFunction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Runtime/AstreFunction.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Runtime/Interpreter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Runtime/Interpreter.java" afterDir="false" />
     </list>
@@ -106,7 +115,14 @@
       <option name="project" value="LOCAL" />
       <updated>1693338768716</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Fixed non-nullable params and updated README.md">
+      <created>1693340408034</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1693340408034</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -125,6 +141,7 @@
     <MESSAGE value="Changed default branch from origin -&gt; master" />
     <MESSAGE value="Added OOP" />
     <MESSAGE value="Added let modifiers: ! and ?.&#10;&#10;let! constant = 100000;&#10;let? nullable = nothing;&#10;&#10;let x = nothing; // runtime error: x was defined without warning us that it could hold `nothing`." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added let modifiers: ! and ?.&#10;&#10;let! constant = 100000;&#10;let? nullable = nothing;&#10;&#10;let x = nothing; // runtime error: x was defined without warning us that it could hold `nothing`." />
+    <MESSAGE value="Fixed non-nullable params and updated README.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed non-nullable params and updated README.md" />
   </component>
 </project>

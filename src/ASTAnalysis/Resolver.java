@@ -89,7 +89,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         beginScope();
         scopes.peek().put("self", true);
 
-        for (final Stmt.Function method : stmt.methods) {
+        for (final FunctionStmt method : stmt.methods) {
             resolveFunction(method, (method.name.lexeme.equals("anew")) ? FunctionType.Anew : FunctionType.Method);
         }
 
@@ -111,14 +111,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Void visitFunctionStmt(Function stmt) {
+    public Void visitFunctionStmt(FunctionStmt stmt) {
         declare(stmt.name);
         define(stmt.name);
         resolveFunction(stmt, FunctionType.Func);
         return null;
     }
 
-    private void resolveFunction(Function stmt, FunctionType type) {
+    private void resolveFunction(FunctionStmt stmt, FunctionType type) {
         final FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
         beginScope();

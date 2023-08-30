@@ -1,0 +1,52 @@
+function new_list_recursive(list, size, index) {
+    if (index < size) {
+        list.next = List();
+        list.value = nothing;
+        new_list_recursive(list.next, size, index+1);
+    }
+}
+
+struct List {
+    anew(size) {
+        if (size <= 0) { self.recursive_anew(size, 0); }
+    }
+
+    recursive_anew(size, index) {
+        if (index < size) {
+            self.next = List(0);
+            self.next.recursive_anew(size, index+1);
+        }
+
+        self.value = nothing;
+    }
+
+    push(value) {
+        if (self.next == nothing) {
+            self.next = List(0);
+            self.next.value = value;
+        } else {
+            self.next.push(value);
+        }
+    }
+
+    at(index) {
+        if (index <= 0) {
+            return self.value;
+        }
+
+        return self.at_recursive(index, 0);
+    }
+
+    at_recursive(index, i) {
+        if (i != index) {
+            if (self.next == nothing) {
+                print "Cannot get value at index: " + index + " because it isn't initialized.";
+                exit(1);
+            }
+
+            return self.next.at_recursive(index, i+1);
+        } else {
+            return self.value;
+        }
+    }
+}

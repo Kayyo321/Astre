@@ -9,7 +9,7 @@ public abstract sealed class Stmt {
         R visitBlockStmt(Block stmt);
         R visitStructStmt(Struct stmt);
         R visitExpressionStmt(Expression stmt);
-        R visitFunctionStmt(Function stmt);
+        R visitFunctionStmt(FunctionStmt stmt);
         R visitIfStmt(If stmt);
         R visitPrintStmt(Print stmt);
         R visitReturnStmt(ReturnStmt stmt);
@@ -32,7 +32,7 @@ public abstract sealed class Stmt {
     }
 
     public static final class Struct extends Stmt {
-        public Struct(Token name, Expr.Variable superStruct, List<Stmt.Function> methods) {
+        public Struct(Token name, Expr.Variable superStruct, List<FunctionStmt> methods) {
             this.name = name;
             this.superStruct = superStruct;
             this.methods = methods;
@@ -45,7 +45,7 @@ public abstract sealed class Stmt {
 
         public final Token name;
         public final Expr.Variable superStruct;
-        public final List<Stmt.Function> methods;
+        public final List<FunctionStmt> methods;
     }
 
     public static final class Expression extends Stmt {
@@ -61,8 +61,8 @@ public abstract sealed class Stmt {
         public final Expr expression;
     }
 
-    public static final class Function extends Stmt {
-        public Function(Token name, List<Token> params, List<Stmt> body) {
+    public static final class FunctionStmt extends Stmt {
+        public FunctionStmt(Token name, List<Token> params, List<Stmt> body) {
             this.name = name;
             this.params = params;
             this.body = body;

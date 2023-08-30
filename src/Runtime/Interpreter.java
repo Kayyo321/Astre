@@ -4,19 +4,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import Astre.*;
 import Parsing.*;
 import Parsing.Expr.*;
 import Parsing.Stmt.*;
 import LexicalAnalysis.*;
+import Runtime.StdLib.IO;
+import Runtime.StdLib.Math;
+
+import static java.lang.Math.pow;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Environment globals = new Environment();
     public Environment environment = globals;
     public final Map<Expr, Integer> locals = new HashMap<>();
+    private final Map<String, Consumer<Environment>> stdLibraries = new HashMap<>();
 
     public Interpreter() {
+        stdLibraries.put("io", IO.builder);
+        stdLibraries.put("math", Math.builder);
+
         globals.define(null, Modifier.Constant, "clock", new AstreCallable() {
             @Override
             public int arity() { return 0; }
@@ -24,6 +33,41 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             @Override
             public Object call(Interpreter interpreter, List<Object> args) {
                 return (double)System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() { return "<native fn>"; }
+        });
+        globals.define(null, Modifier.Constant, "import", new AstreCallable() {
+            @Override
+            public int arity() { return 1; }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                final String toImport = (String)args.get(0);
+
+                if (stdLibraries.get(toImport) == null) {
+                    System.err.println("Couldn't import library: " + toImport + " because it was not defined in the Astre-Standard-Library");
+                    System.exit(1);
+                }
+
+                stdLibraries.get(toImport).accept(environment);
+
+                return null;
+            }
+
+            @Override
+            public String toString() { return "<native fn>"; }
+        });
+        globals.define(null, Modifier.Constant, "exit", new AstreCallable() {
+            @Override
+            public int arity() { return 1; }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                final int exitCode = (Integer)args.get(0);
+                System.exit(exitCode);
+                return null; // Never here.
             }
 
             @Override
@@ -117,7 +161,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
             case Power -> {
                 checkNumberOperands(expr.operator, left, right);
-                return Math.pow((double) left, (double) right);
+                return pow((double) left, (double) right);
             }
             case Greater -> {
                 checkNumberOperands(expr.operator, left, right);
@@ -259,7 +303,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             throw new RuntimeError(expr.paren, "Can only call function name and classes.");
         }
 
-        if (args.size() != function.arity()) {
+        if (function.arity() != -1 && args.size() != function.arity()) {
             throw new RuntimeError(expr.paren, "Expected " + function.arity() + " arguments but got " + args.size() + ".");
         }
 
@@ -366,7 +410,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         final Map<String, AstreFunction> methods = new HashMap<>();
-        for (final Stmt.Function method : stmt.methods) {
+        for (final FunctionStmt method : stmt.methods) {
             methods.put(method.name.lexeme, new AstreFunction(method, environment, method.name.lexeme.equals("anew")));
         }
 
@@ -380,8 +424,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Void visitFunctionStmt(Function stmt) {
-        environment.define(stmt.name, Modifier.None, stmt.name.lexeme, new AstreFunction(stmt, environment));
+    public Void visitFunctionStmt(FunctionStmt stmt) {
+        environment.define(stmt.name, Modifier.Nullable, stmt.name.lexeme, new AstreFunction(stmt, environment));
         return null;
     }
 

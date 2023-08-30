@@ -17,7 +17,11 @@ public class Astre {
 
     public static boolean traceTokens=false, traceStmt=false;
 
-    public static void main(String[] args) throws IOException {
+    public static String[] cmdLnArgs;
+
+    public static void main(final String[] args) throws IOException {
+        cmdLnArgs = args;
+
         if (args.length == 0) {
             runPrompt();
             return;

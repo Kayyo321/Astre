@@ -89,12 +89,12 @@ public class Parser {
         } else {
             superClass = null;
         }
-        final List<Stmt.Function> methods = new ArrayList<>();
+        final List<Stmt.FunctionStmt> methods = new ArrayList<>();
 
         consume(LBrace, "Expect `{` after struct-name");
 
         while (!check(RBrace) && !isAtEnd()) {
-            methods.add((Stmt.Function)function(true));
+            methods.add((Stmt.FunctionStmt)function(true));
         }
 
         consume(RBrace, "Expect `}` after struct body.");
@@ -201,7 +201,7 @@ public class Parser {
         }
 
         consume(RParen, "Expect `)` after " + "func" + " arguments.");
-        return new Stmt.Function(name, params, block());
+        return new Stmt.FunctionStmt(name, params, block());
     }
 
     private Stmt returnStmt() {

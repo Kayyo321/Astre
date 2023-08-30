@@ -1,0 +1,3 @@
+import('io');
+
+writeln("Hello, World!");

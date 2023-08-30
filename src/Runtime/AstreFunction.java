@@ -5,17 +5,17 @@ import java.util.List;
 import Parsing.*;
 
 public class AstreFunction implements AstreCallable {
-    private final Stmt.Function declaration;
+    private final Stmt.FunctionStmt declaration;
     private final Environment closure;
     private final boolean isAnew;
 
-    public AstreFunction(Stmt.Function declaration, Environment closure) {
+    public AstreFunction(Stmt.FunctionStmt declaration, Environment closure) {
         this.declaration = declaration;
         this.closure = closure;
         this.isAnew = false;
     }
 
-    public AstreFunction(final Stmt.Function declaration, final Environment closure, final boolean isAnew) {
+    public AstreFunction(final Stmt.FunctionStmt declaration, final Environment closure, final boolean isAnew) {
         this.declaration = declaration;
         this.closure = closure;
         this.isAnew = isAnew;
