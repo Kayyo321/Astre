@@ -6,6 +6,8 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.*;
+
 import ASTAnalysis.Resolver;
 import LexicalAnalysis.*;
 import Parsing.*;
@@ -15,7 +17,7 @@ public class Astre {
     private static boolean hadError = false, hadRuntimeError = false;
     private static final Interpreter astre = new Interpreter();
 
-    public static boolean traceTokens=false, traceStmt=false;
+    public static boolean traceTokens=false, traceStmt=false, isLibrary=false;
 
     public static String[] cmdLnArgs;
 
@@ -54,6 +56,7 @@ public class Astre {
             switch (flag) {
                 case "-tokentrace" -> traceTokens = true;
                 case "-tracestmt" -> traceStmt = true;
+                case "-jsonlib" -> isLibrary = true;
                 default -> {
                     System.err.println("Didn't expect flag: " + flag);
                     System.exit(1);
@@ -113,7 +116,7 @@ public class Astre {
         }
     }
 
-    private static void run(String code) {
+    private static void run(final String code) {
         final Scanner lexer = new Scanner(code);
         final List<Token> tokens = lexer.scan();
 
@@ -129,13 +132,28 @@ public class Astre {
             return;
         }
 
-        final Resolver resolver = new Resolver(astre);
-        resolver.resolve(ast);
-        if (hadError) {
-            return;
-        }
+        if (isLibrary) {
+            final Gson gson = new Gson();
+            final String json = gson.toJson(ast);
 
-        astre.interpret(ast);
+            try {
+                final FileWriter myFile = new FileWriter("C:\\Users\\sully\\IdeaProjects\\Astre\\lib_structs\\newLib.json");
+                myFile.write(json);
+                myFile.close();
+                System.out.println("Created library-json successfully");
+            } catch(final IOException ioe) {
+                ioe.printStackTrace();
+                System.exit(1);
+            }
+        } else {
+            final Resolver resolver = new Resolver(astre);
+            resolver.resolve(ast);
+            if (hadError) {
+                return;
+            }
+
+            astre.interpret(ast);
+        }
     }
 
     private static void report(int line, String where, String message) {

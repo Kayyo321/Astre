@@ -204,6 +204,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitForStmt(For stmt) {
+        beginScope();
         if (stmt.init != null) {
             resolve(stmt.init);
         }
@@ -215,6 +216,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         if (stmt.inc != null) {
             resolve(stmt.inc);
         }
+        endScope();
 
         return null;
     }
@@ -313,7 +315,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void resolveLocal(Expr expr, Token name) {
         for (int i = scopes.size()-1; i >= 0; --i) {
             if (scopes.get(i).containsKey(name.lexeme)) {
-                interpreter.resolve(expr, scopes.size()-1-i);
+                interpreter.resolve(expr, (scopes.size()-1)-i);
                 return;
             }
         }

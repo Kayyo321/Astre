@@ -3,6 +3,13 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Astre.iml" filepath="$PROJECT_DIR$/Astre.iml" />
+      <module fileurl="file://$PROJECT_DIR$/depend/gson/graal-native-image-test/graal-native-image-test.iml" filepath="$PROJECT_DIR$/depend/gson/graal-native-image-test/graal-native-image-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/depend/gson/gson/gson.iml" filepath="$PROJECT_DIR$/depend/gson/gson/gson.iml" />
+      <module fileurl="file://$PROJECT_DIR$/depend/gson/extras/gson-extras.iml" filepath="$PROJECT_DIR$/depend/gson/extras/gson-extras.iml" />
+      <module fileurl="file://$PROJECT_DIR$/depend/gson/metrics/gson-metrics.iml" filepath="$PROJECT_DIR$/depend/gson/metrics/gson-metrics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/depend/gson/gson-parent.iml" filepath="$PROJECT_DIR$/depend/gson/gson-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/depend/gson/proto/proto.iml" filepath="$PROJECT_DIR$/depend/gson/proto/proto.iml" />
+      <module fileurl="file://$PROJECT_DIR$/depend/gson/shrinker-test/shrinker-test.iml" filepath="$PROJECT_DIR$/depend/gson/shrinker-test/shrinker-test.iml" />
     </modules>
   </component>
 </project>

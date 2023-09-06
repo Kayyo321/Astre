@@ -18,8 +18,15 @@ public abstract sealed class Stmt {
         R visitForStmt(For stmt);
     }
 
+    public final String classType;
+
+    public Stmt(final String classType) {
+        this.classType = classType;
+    }
+
     public static final class Block extends Stmt {
         public Block(List<Stmt> statements) {
+            super("Block");
             this.statements = statements;
         }
 
@@ -33,6 +40,7 @@ public abstract sealed class Stmt {
 
     public static final class Struct extends Stmt {
         public Struct(Token name, Expr.Variable superStruct, List<FunctionStmt> methods) {
+            super("Struct");
             this.name = name;
             this.superStruct = superStruct;
             this.methods = methods;
@@ -50,6 +58,7 @@ public abstract sealed class Stmt {
 
     public static final class Expression extends Stmt {
         public Expression(Expr expression) {
+            super("Expression");
             this.expression = expression;
         }
 
@@ -63,6 +72,7 @@ public abstract sealed class Stmt {
 
     public static final class FunctionStmt extends Stmt {
         public FunctionStmt(Token name, List<Token> params, List<Stmt> body) {
+            super("FunctionStmt");
             this.name = name;
             this.params = params;
             this.body = body;
@@ -80,6 +90,7 @@ public abstract sealed class Stmt {
 
     public static final class If extends Stmt {
         public If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
+            super("If");
             this.condition = condition;
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;
@@ -97,6 +108,7 @@ public abstract sealed class Stmt {
 
     public static final class Print extends Stmt {
         public Print(Expr expression) {
+            super("Print");
             this.expression = expression;
         }
 
@@ -110,6 +122,7 @@ public abstract sealed class Stmt {
 
     public static final class ReturnStmt extends Stmt {
         public ReturnStmt(Token keyword, Expr value) {
+            super("ReturnStmt");
             this.keyword = keyword;
             this.value = value;
         }
@@ -132,6 +145,7 @@ public abstract sealed class Stmt {
 
     public static final class Let extends Stmt {
         public Let(Token keyword, Modifier mod, Token name, Expr init) {
+            super("Let");
             this.keyword = keyword;
             this.mod = mod;
             this.name = name;
@@ -151,6 +165,7 @@ public abstract sealed class Stmt {
 
     public static final class While extends Stmt {
         public While(Expr condition, Stmt body) {
+            super("While");
             this.condition = condition;
             this.body = body;
         }
@@ -166,6 +181,7 @@ public abstract sealed class Stmt {
 
     public static final class For extends Stmt {
         public For(Stmt init, Expr condition, Expression inc, Stmt body) {
+            super("For");
             this.init = init;
             this.condition = condition;
             this.inc = inc;

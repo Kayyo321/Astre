@@ -155,7 +155,7 @@ public class Parser {
         final Stmt init;
         if (match(Semicolon)) {
             init = null;
-        } else if (match(Let)) {
+        } else if (check(Let)) {
             init = letDeclaration();
         } else {
             init = expressionStmt(false);

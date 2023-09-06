@@ -12,6 +12,7 @@ import Parsing.Expr.*;
 import Parsing.Stmt.*;
 import LexicalAnalysis.*;
 import Runtime.StdLib.IO;
+import Runtime.StdLib.ListLib;
 import Runtime.StdLib.Math;
 
 import static java.lang.Math.pow;
@@ -20,11 +21,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Environment globals = new Environment();
     public Environment environment = globals;
     public final Map<Expr, Integer> locals = new HashMap<>();
-    private final Map<String, Consumer<Environment>> stdLibraries = new HashMap<>();
+    private final Map<String, Consumer<Interpreter>> stdLibraries = new HashMap<>();
+
+    public final Interpreter self = this;
 
     public Interpreter() {
         stdLibraries.put("io", IO.builder);
         stdLibraries.put("math", Math.builder);
+        stdLibraries.put("list", ListLib.builder);
 
         globals.define(null, Modifier.Constant, "clock", new AstreCallable() {
             @Override
@@ -51,7 +55,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     System.exit(1);
                 }
 
-                stdLibraries.get(toImport).accept(environment);
+                stdLibraries.get(toImport).accept(self);
 
                 return null;
             }
@@ -222,7 +226,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
-    private Object evaluate(final Expr expr) {
+    public Object evaluate(final Expr expr) {
         return expr.accept(this);
     }
 
@@ -285,7 +289,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (distance != null) {
             environment.assignAt(distance, expr.name, value);
         } else {
-            globals.assign(expr.name, value);
+            try {
+                globals.assign(expr.name, value);
+            } catch (RuntimeError ignored) {
+                environment.assign(expr.name, value);
+            }
         }
         return value;
     }
@@ -374,7 +382,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (distance != null) {
             return environment.getAt(distance, name.lexeme);
         } else {
-            return globals.get(name);
+            try {
+                return globals.get(name);
+            } catch (RuntimeError ignored) {
+                return environment.get(name);
+            }
         }
     }
 

@@ -6,22 +6,29 @@ import LexicalAnalysis.*;
 
 public abstract sealed class Expr {
     public interface Visitor<R> {
-        public R visitAssignExpr(Assign expr);
-        public R visitBinaryExpr(Binary expr);
-        public R visitCallExpr(Call expr);
-        public R visitGetExpr(Get expr);
-        public R visitGroupingExpr(Grouping expr);
-        public R visitLiteralExpr(Literal expr);
-        public R visitLogicalExpr(Logical expr);
-        public R visitSetExpr(Set expr);
-        public R visitSuperExpr(Super expr);
-        public R visitSelfExpr(Self expr);
-        public R visitUnaryExpr(Unary expr);
-        public R visitVariable(Variable expr);
+        R visitAssignExpr(Assign expr);
+        R visitBinaryExpr(Binary expr);
+        R visitCallExpr(Call expr);
+        R visitGetExpr(Get expr);
+        R visitGroupingExpr(Grouping expr);
+        R visitLiteralExpr(Literal expr);
+        R visitLogicalExpr(Logical expr);
+        R visitSetExpr(Set expr);
+        R visitSuperExpr(Super expr);
+        R visitSelfExpr(Self expr);
+        R visitUnaryExpr(Unary expr);
+        R visitVariable(Variable expr);
+    }
+
+    public final String classType;
+
+    public Expr(final String classType) {
+        this.classType = classType;
     }
 
     public static final class Assign extends Expr {
-        public Assign(Token name, Expr value) {
+        public Assign(final Token name, final Expr value) {
+            super("Assign");
             this.name = name;
             this.value = value;
         }
@@ -37,6 +44,7 @@ public abstract sealed class Expr {
 
     public static final class Binary extends Expr {
         public Binary(Expr left, Token operator, Expr right) {
+            super("Binary");
             this.left = left;
             this.operator = operator;
             this.right = right;
@@ -54,6 +62,7 @@ public abstract sealed class Expr {
 
     public static final class Call extends Expr {
         public Call(Expr callee, Token paren, List<Expr> arguments) {
+            super("Call");
             this.callee = callee;
             this.paren = paren;
             this.arguments = arguments;
@@ -71,6 +80,7 @@ public abstract sealed class Expr {
 
     public static final class Get extends Expr {
         public Get(Expr obj, Token name) {
+            super("Get");
             this.obj = obj;
             this.name = name;
         }
@@ -86,6 +96,7 @@ public abstract sealed class Expr {
 
     public static final class Grouping extends Expr {
         public Grouping(Expr expression) {
+            super("Grouping");
             this.expression = expression;
         }
 
@@ -99,6 +110,7 @@ public abstract sealed class Expr {
 
     public static final class Literal extends Expr {
         public Literal(Object value) {
+            super("Literal");
             this.value = value;
         }
 
@@ -112,6 +124,7 @@ public abstract sealed class Expr {
 
     public static final class Logical extends Expr {
         public Logical(Expr left, Token operator, Expr right) {
+            super("Logical");
             this.left = left;
             this.operator = operator;
             this.right = right;
@@ -129,6 +142,7 @@ public abstract sealed class Expr {
 
     public static final class Set extends Expr {
         public Set(Expr obj, Token name, Expr value) {
+            super("Set");
             this.obj = obj;
             this.name = name;
             this.value = value;
@@ -146,6 +160,7 @@ public abstract sealed class Expr {
 
     public static final class Super extends Expr {
         public Super(Token keyword, Token method) {
+            super("Super");
             this.keyword = keyword;
             this.method = method;
         }
@@ -161,6 +176,7 @@ public abstract sealed class Expr {
 
     public static final class Self extends Expr {
         public Self(Token keyword) {
+            super("Self");
             this.keyword = keyword;
         }
 
@@ -174,6 +190,7 @@ public abstract sealed class Expr {
 
     public static final class Unary extends Expr {
         public Unary(Token operator,  Expr right) {
+            super("Unary");
             this.operator = operator;
             this.right = right;
         }
@@ -189,6 +206,7 @@ public abstract sealed class Expr {
 
     public static final class Variable extends Expr {
         public Variable(Token name) {
+            super("Variable");
             this.name = name;
         }
 
