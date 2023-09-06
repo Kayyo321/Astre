@@ -3,6 +3,8 @@ package LexicalAnalysis;
 import java.util.ArrayList;
 import java.util.*;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import Astre.Astre;
 
 import static LexicalAnalysis.TokenType.*;
@@ -76,6 +78,16 @@ public class Scanner {
                     while (peek() != '\n' && !atEOF()) {
                         eat();
                     }
+                } else if (match('*')) {
+                    while (peek() != '*' && peekNext() != '/' && !atEOF()) {
+                        if (peek() == '\n') {
+                            ++line;
+                        }
+
+                        eat();
+                    }
+                    match('*');
+                    match('/');
                 } else {
                     addToken(Slash);
                 }
@@ -157,7 +169,10 @@ public class Scanner {
 
         eat();
 
-        addToken(String, code.substring(start+1, current-1));
+        final String unEscaped = code.substring(start+1, current-1);
+        final String escaped = StringEscapeUtils.unescapeJava(unEscaped);
+
+        addToken(String, escaped);
     }
 
     private void number() {

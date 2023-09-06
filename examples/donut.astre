@@ -1,0 +1,69 @@
+// Spinning donut implementation in Astre
+
+import('io');
+import('list');
+import('math');
+
+let k = 0;
+
+let A = 0.0;
+let B = 0.0;
+
+let i = 0.0;
+let j = 0.0;
+
+let z = List(); // floats
+z.fill(1760, 0.0);
+
+let b = List(); // chars
+b.fill(1760, ' ');
+
+let! ascii = ".,-~:;=!*#$@";
+
+write("\u001b[2J");
+
+while (true) {
+    sleep(30);
+
+    for (j = 0.0; 6.28 > j; j = j + 0.07) {
+        for (i = 0.0; 6.28 > i; i = i + 0.02) {
+            let sini = sin(i);
+            let cosj = cos(j);
+            let sinA = sin(A);
+            let sinj = sin(j);
+            let cosA = cos(A);
+            let cosj2 = cosj + 2;
+            let mess = 1/(sini*cosj2*sinA+sinj*cosA+5);
+            let cosi = cos(i);
+            let cosB = cos(B);
+            let sinB = sin(B);
+            let t = sini * cosj2 * cosA - sinj * sinA;
+            let x = 40+30*mess*(cosi*cosj2*cosB-t*sinB);
+            let y = 12+15*mess*(cosi*cosj2*sinB +t*cosB);
+            let o = x+80*y;
+            let N = 8*((sinj*sinA-sini*cosj*cosA)*cosB-sini*cosj*sinA-sinj*cosA-cosi *cosj*sinB);
+
+            if (22 > y and y > 0 and x > 0 and 80 > x and mess > z.get(o)) {
+                z.put(o, mess);
+                if (N > 0) {
+                    b.put(o, char_at(ascii, N));
+                } else {
+                    b.put(o, char_at(ascii, 0));
+                }
+            }
+        }
+    }
+
+    write("\u001b[H");
+
+    for (k = 0; 1761 > k; k = k + 1) {
+        if (k % 80 > 0) {
+            write(b.get(k));
+        } else {
+            writeln();
+        }
+    }
+
+    A = A + 0.04;
+    B = B + 0.02;
+}

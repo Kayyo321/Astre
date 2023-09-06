@@ -1,0 +1,5 @@
+struct CString {
+    anew(chars) {
+        self.chars = chars;
+    }
+}

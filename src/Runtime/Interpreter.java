@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import Astre.*;
@@ -69,9 +70,43 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
             @Override
             public Object call(Interpreter interpreter, List<Object> args) {
-                final int exitCode = (Integer)args.get(0);
-                System.exit(exitCode);
+                final double temp = (Double)args.get(0);
+                System.exit((int)temp);
                 return null; // Never here.
+            }
+
+            @Override
+            public String toString() { return "<native fn>"; }
+        });
+        globals.define(null, Modifier.Constant, "sleep", new AstreCallable() {
+            @Override
+            public int arity() { return 1; }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                final double time = (Double)args.get(0);
+                try {
+                    TimeUnit.MILLISECONDS.sleep((long) time);
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                    System.exit(1);
+                }
+                return null; // Never here.
+            }
+
+            @Override
+            public String toString() { return "<native fn>"; }
+        });
+        globals.define(null, Modifier.Constant, "char_at", new AstreCallable() {
+            @Override
+            public int arity() { return 2; }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                final String str = (String)args.get(0);
+                final int index = (int)(double)args.get(1);
+
+                return str.charAt(index);
             }
 
             @Override

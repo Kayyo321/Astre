@@ -217,6 +217,21 @@ public class ListLib {
                         self.clear();
                         self.append(new);
                     }
+                    
+                    fill(amount, value) {
+                        self.clear();
+                        
+                        self.value = value;
+                        self.next = List();
+                        let? ptr = self.next;
+                        
+                        // go one below the amount because self.value counts as 1
+                        for (let i = 1; i < amount; i = i + 1) {
+                            ptr.value = value;
+                            ptr.next = List();
+                            ptr = ptr.next;
+                        }
+                    }
                 }""";
         //endregion
 

@@ -1,26 +1,27 @@
-struct Animal {
-    anew(name, age) {
-        self.name = name;
-        self.age = age;
+import("io");
+
+let i = 0;
+let dir = 1;
+
+while (true) {
+    write("\r");
+
+    i = i + dir;
+
+    if (i > 9) dir = -1;
+    else if (i < 1) dir = 1;
+
+    i = i + dir;
+
+    for (let x = 0; x < i; x = x + 1) {
+        write(x, '');
     }
 
-    stats() {
-        print "{" + self.name + ", " + self.age + "}";
+    sleep(500 / 2);
+
+    write("\r");
+
+    for (let x = 0; x < i; x = x + 1) {
+        write(" ");
     }
 }
-
-struct Dog derives Animal {
-    anew(name, age, breed) {
-        super(name, age);
-        self.breed = breed;
-    }
-
-    stats() {
-        super.stats();
-        print "+ {" + self.breed + "}";
-    }
-}
-
-let my_dog = Dog("Roxy", 3, "French Bulldog");
-
-my_dog.stats();
