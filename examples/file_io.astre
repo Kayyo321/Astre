@@ -1,0 +1,45 @@
+struct File {
+    anew(path) {
+        self.path = path;
+        self.size = ftell(path);
+        self.idx = 0;
+    }
+
+    read_byte() {
+        let!? byte = freadb(self.path, self.idx);
+        if (self.idx + 1 < self.size - 1) {
+            self.idx = self.idx + 1;
+        }
+        return byte;
+    }
+
+    set_ptr(idx) {
+        self.idx = idx;
+    }
+
+    at_eof() {
+        return self.idx < 0 or self.idx >= self.size-1;
+    }
+}
+
+struct FileReader derives File {
+    anew(file) {
+        self.path = file.path;
+        self.size = file.size;
+        super.set_ptr(0);
+    }
+
+    readln() {
+        if (super.at_eof()) {
+            return nothing;
+        }
+
+        let str = "";
+        let ch = super.read_byte();
+
+        while (ch != '\n') {
+            str = str + ch;
+            ch = super.read_byte();
+        }
+    }
+}

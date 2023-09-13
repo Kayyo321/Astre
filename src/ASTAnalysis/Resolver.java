@@ -74,7 +74,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.name);
         define(stmt.name);
 
-        if (stmt.superStruct != null) {
+        if (stmt.status == Struct.DERIVES) {
             currentStruct = StructType.SubStruct;
 
             if (stmt.name.lexeme.equals(stmt.superStruct.name.lexeme)) {
@@ -95,11 +95,15 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         endScope();
 
-        if (stmt.superStruct != null) {
+        if (stmt.status == Struct.DERIVES) {
             endScope();
         }
 
         currentStruct = enclosingStruct;
+
+        if (stmt.isStatic) {
+            interpreter.visitStructStmt(stmt);
+        }
 
         return null;
     }
@@ -115,6 +119,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.name);
         define(stmt.name);
         resolveFunction(stmt, FunctionType.Func);
+
+        if (stmt.isStatic) {
+            interpreter.visitFunctionStmt(stmt);
+        }
+
         return null;
     }
 
@@ -198,7 +207,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitWhileStmt(While stmt) {
         resolve(stmt.condition);
+        beginScope();
         resolve(stmt.body);
+        endScope();
         return null;
     }
 
@@ -218,6 +229,68 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
         endScope();
 
+        return null;
+    }
+
+    @Override
+    public Void visitMatchStmt(Match stmt) {
+        resolve(stmt.matchOn);
+        if (stmt.isStatic) {
+            for (final Case possibility : stmt.possibilities) {
+                resolve(possibility.possibility);
+                resolve(possibility.toRun);
+
+                stmt.statics.add(interpreter.evaluate(possibility.possibility));
+            }
+        } else {
+            for (final Case possibility : stmt.possibilities) {
+                resolve(possibility.possibility);
+                resolve(possibility.toRun);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitInterfaceStmt(InterfaceStmt stmt) {
+        declare(stmt.name);
+        define(stmt.name);
+
+        beginScope();
+
+        for (final Token name : stmt.methods.keySet()) {
+            declare(name);
+            define(name);
+            resolve(stmt.methods.get(name));
+        }
+
+        endScope();
+
+        if (stmt.isStatic) {
+            interpreter.visitInterfaceStmt(stmt);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Void visitRangeStmt(RangeStmt stmt) {
+        beginScope();
+
+        declare(stmt.iterator);
+        define(stmt.iterator);
+
+        resolve(stmt.stop);
+        if (!stmt.oneArg) {
+            assert stmt.start != null; // Stupid warning don't understand this is what the boolean is for :P
+            resolve(stmt.start);
+            assert stmt.step != null;  // ^^^^^
+            resolve(stmt.step);
+        }
+
+        resolve(stmt.body);
+
+        endScope();
         return null;
     }
 
@@ -281,7 +354,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         if (currentStruct == StructType.None) {
             Astre.error(expr.keyword, "Can't user `super` outside of a struct.");
         } else if (currentStruct != StructType.SubStruct) {
-            Astre.error(expr.keyword, "Cant' use `super` in a struct with no super-struct");
+            Astre.error(expr.keyword, "Can't use `super` in a struct with no super-struct");
         }
         resolveLocal(expr, expr.keyword);
         return null;

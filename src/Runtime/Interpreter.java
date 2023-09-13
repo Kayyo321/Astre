@@ -1,20 +1,21 @@
 package Runtime;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import Astre.*;
 import Parsing.*;
 import Parsing.Expr.*;
+import Parsing.Expr.Set;
 import Parsing.Stmt.*;
 import LexicalAnalysis.*;
 import Runtime.StdLib.IO;
 import Runtime.StdLib.ListLib;
 import Runtime.StdLib.Math;
+import Runtime.StdLib.Rand;
 
 import static java.lang.Math.pow;
 
@@ -30,6 +31,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         stdLibraries.put("io", IO.builder);
         stdLibraries.put("math", Math.builder);
         stdLibraries.put("list", ListLib.builder);
+        stdLibraries.put("random", Rand.builder);
 
         globals.define(null, Modifier.Constant, "clock", new AstreCallable() {
             @Override
@@ -112,6 +114,28 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             @Override
             public String toString() { return "<native fn>"; }
         });
+        globals.define(null, Modifier.Constant, "read_all_bytes", new AstreCallable() {
+            @Override
+            public int arity() { return 1; }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                final String path = (String)args.get(0);
+                try {
+                    final byte[] bytes = Files.readAllBytes(Paths.get(path));
+                    return new String(bytes);
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                    return null; // Never here
+                }
+            }
+
+            @Override
+            public String toString() { return "<native fn>"; }
+        });
+        /*final byte[] bytes = Files.readAllBytes(Paths.get(file));
+        run(new String(bytes, Charset.defaultCharset()));*/
     }
 
     public void interpret(List<Stmt> ast) {
@@ -148,6 +172,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
+    private void executeWhile(While stmt, Environment environment) {
+        final Environment previous = this.environment;
+        try {
+            this.environment = environment;
+
+            while (isTruthy(evaluate(stmt.condition))) {
+                execute(stmt.body);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
     private void executeFor(For stmt, Environment environment) {
         final Environment previous = this.environment;
         try {
@@ -168,9 +205,70 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
+    private void executeRange(RangeStmt stmt, Environment environment) {
+        final Environment previous = this.environment;
+        try {
+            this.environment = environment;
+
+            this.environment.define(stmt.iterator, Modifier.Nullable, stmt.iterator.lexeme, null);
+
+            if (stmt.oneArg) {
+                final double stop = (double)evaluate(stmt.stop);
+                for (double i = 0; i < stop; ++i) {
+                    this.environment.assign(stmt.iterator, i);
+                    execute(stmt.body);
+                }
+            } else {
+                final double start = (double)evaluate(stmt.start);
+                final double stop = (double)evaluate(stmt.stop);
+                final double step = (double)evaluate(stmt.step);
+
+                for (double i = start; i < stop; i += step) {
+                    this.environment.assign(stmt.iterator, i);
+                    execute(stmt.body);
+                }
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
     @Override
     public Object visitBinaryExpr(final Binary expr) {
         final Object left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.Derives) {
+            if (!(left instanceof AstreInstance)) {
+                throw new RuntimeError(expr.operator, "`derives` can only be used on an instance");
+            }
+            if (!(expr.right instanceof Variable)) {
+                throw new RuntimeError(expr.operator, "`derives` cannot be compared to a non-identifier");
+            }
+            final String name = ((Variable)expr.right).name.lexeme;
+
+            AstreStruct struct = ((AstreInstance)left).struct;
+            while (!Objects.equals(struct.name, name) && struct.superStruct != null) {
+                struct = struct.superStruct;
+            }
+
+            return struct.name.equals(name);
+        } else if (expr.operator.type == TokenType.Implements) {
+            if (!(left instanceof AstreInstance)) {
+                throw new RuntimeError(expr.operator, "`derives` can only be used on an instance");
+            }
+            if (!(expr.right instanceof Variable)) {
+                throw new RuntimeError(expr.operator, "`derives` cannot be compared to a non-identifier");
+            }
+            final String name = ((Variable)expr.right).name.lexeme;
+
+            AstreStruct struct = ((AstreInstance)left).struct;
+            while ((struct.superInterface == null || !Objects.equals(struct.superInterface.name, name)) && struct.superStruct != null) {
+                struct = struct.superStruct;
+            }
+
+            return struct.superInterface != null && struct.superInterface.name.equals(name);
+        }
+
         final Object right = evaluate(expr.right);
 
         switch (expr.operator.type) {
@@ -368,16 +466,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         final Object right = evaluate(expr.right);
 
         if (expr.operator.type == TokenType.Or) {
-            if (isTruthy(left)) {
-                return left;
-            } else if (isTruthy(right)) {
-                return right;
-            }
-        } else if (expr.operator.type == TokenType.And) {
-            return isTruthy(left) && isTruthy(right);
+            return isTruthy(left) || isTruthy(right);
         }
 
-        return false;
+        return isTruthy(left) && isTruthy(right);
     }
 
     @Override
@@ -442,8 +534,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         final Object superStruct;
         if (stmt.superStruct != null) {
             superStruct = evaluate(stmt.superStruct);
-            if (!(superStruct instanceof AstreStruct)) {
-                throw new RuntimeError(stmt.superStruct.name, "Super-Struct must be a struct");
+            switch (stmt.status) {
+                case Struct.DERIVES -> {
+                    if (!(superStruct instanceof AstreStruct)) {
+                        throw new RuntimeError(stmt.superStruct.name, "Super-Struct must be a struct");
+                    }
+                }
+                case Struct.IMPLEMENTS -> {
+                    if (!(superStruct instanceof AstreInterface)) {
+                        throw new RuntimeError(stmt.superStruct.name, "Super-Interface must be an interface");
+                    }
+                }
+                default -> {}
             }
         } else {
             superStruct = null;
@@ -451,7 +553,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         environment.define(stmt.name, Modifier.Nullable, stmt.name.lexeme, null);
 
-        if (stmt.superStruct != null) {
+        if (stmt.status != Struct.NOTHING && stmt.status != Struct.IMPLEMENTS) {
             environment = new Environment(environment);
             environment.define(stmt.name, Modifier.Constant, "super", superStruct);
         }
@@ -461,11 +563,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             methods.put(method.name.lexeme, new AstreFunction(method, environment, method.name.lexeme.equals("anew")));
         }
 
-        if (superStruct != null) {
+        if (stmt.status != Struct.NOTHING && stmt.status != Struct.IMPLEMENTS) {
             environment = environment.enclosing;
         }
 
-        environment.assign(stmt.name, new AstreStruct(stmt.name.lexeme, (AstreStruct)superStruct, methods));
+        if (stmt.status == Struct.DERIVES || stmt.status == Struct.NOTHING) {
+            environment.assign(stmt.name, new AstreStruct(stmt.name.lexeme, (AstreStruct) superStruct, methods));
+        } else {
+            environment.assign(stmt.name, new AstreStruct(stmt.name.lexeme, (AstreInterface) superStruct, methods));
+        }
 
         return null;
     }
@@ -488,7 +594,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitPrintStmt(Print stmt) {
-        System.out.println(stringify(evaluate(stmt.expression)));
+        System.out.print(stringify(evaluate(stmt.expression)));
+        if (stmt.newLine) {
+            System.out.println();
+        }
         return null;
     }
 
@@ -505,15 +614,65 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitWhileStmt(While stmt) {
-        while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body);
-        }
+        executeWhile(stmt, new Environment(environment));
         return null;
     }
 
     @Override
     public Void visitForStmt(For stmt) {
         executeFor(stmt, new Environment(environment));
+        return null;
+    }
+
+    @Override
+    public Void visitMatchStmt(Match stmt) {
+        final Object toSwitchOn = evaluate(stmt.matchOn);
+
+        if (stmt.isStatic) {
+            final int caseStmt = stmt.statics.indexOf(toSwitchOn);
+            if (caseStmt != -1) {
+                execute(stmt.possibilities.get(caseStmt).toRun);
+                return null;
+            }
+        } else {
+            Object evald;
+            for (final Case possibility : stmt.possibilities) {
+                evald = evaluate(possibility.possibility);
+                if (toSwitchOn.equals(evald)) {
+                    execute(possibility.toRun);
+                    return null;
+                }
+            }
+        }
+
+        if (stmt.ifAllElseFails != null) {
+            execute(stmt.ifAllElseFails);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Void visitInterfaceStmt(InterfaceStmt stmt) {
+        final String name = stmt.name.lexeme;
+        final Map<String, Integer> methods = new HashMap<>();
+        Object e;
+
+        environment.define(stmt.name, Modifier.Nullable, stmt.name.lexeme, null);
+
+        for (final Token methodName : stmt.methods.keySet()) {
+            e = evaluate(stmt.methods.get(methodName));
+            methods.put(methodName.lexeme, (int)(double)e);
+        }
+
+        environment.assign(stmt.name, new AstreInterface(name, methods));
+
+        return null;
+    }
+
+    @Override
+    public Void visitRangeStmt(RangeStmt stmt) {
+        executeRange(stmt, new Environment(environment));
         return null;
     }
 }

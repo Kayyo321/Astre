@@ -1,0 +1,18 @@
+import('io');
+
+struct X {
+    anew() {
+        self.foo = "foo";
+        self.bar = "bar";
+    }
+}
+
+function xyz() {
+    print "hi";
+}
+
+let x = X();
+
+x.my_fun = xyz;
+
+x.my_fun();

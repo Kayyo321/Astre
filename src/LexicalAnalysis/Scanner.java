@@ -18,10 +18,13 @@ public class Scanner {
     public Scanner(String code) {
         this.code = code;
         keywords.put("and", And);
+        keywords.put("class", Struct);
         keywords.put("struct", Struct);
         keywords.put("else", Else);
         keywords.put("false", False);
         keywords.put("for", For);
+        keywords.put("func", Function);
+        keywords.put("fn", Function);
         keywords.put("function", Function);
         keywords.put("if", If);
         keywords.put("nothing", Nothing);
@@ -34,6 +37,12 @@ public class Scanner {
         keywords.put("let", Let);
         keywords.put("while", While);
         keywords.put("derives", Derives);
+        keywords.put("match", Match);
+        keywords.put("case", Case);
+        keywords.put("static", Static);
+        keywords.put("interface", Interface);
+        keywords.put("implements", Implements);
+        keywords.put("range", Range);
     }
 
     public List<Token> scan() {
@@ -56,6 +65,7 @@ public class Scanner {
             case ',': addToken(Comma); break;
             case '-': addToken(Minus); break;
             case '+': addToken(Plus); break;
+            case ':': addToken(Colon); break;
             case ';': addToken(Semicolon); break;
             case '*': addToken(Star); break;
             case '%': addToken(Modulo); break;
@@ -101,7 +111,8 @@ public class Scanner {
                 break;
             case '"' :
             case '\'':
-                string(c); break;
+                string(c);
+                break;
             default:
                 if (isDigit(c)) {
                     number();

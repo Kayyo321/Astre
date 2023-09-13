@@ -1,0 +1,70 @@
+import('io');
+
+struct Dog implements Pet {
+    anew(name) {
+        self.name = name;
+    }
+
+    get_name() {
+        return self.name;
+    }
+
+    go_to_sleep() {
+        writeln(self.name, 'is sleeping (Zzz)...');
+    }
+
+    eat() {
+        writeln(self.name, 'is eating dog-food!');
+    }
+
+    play() {
+        writeln(self.name, 'is playing fetch!');
+    }
+}
+
+struct Cat implements Pet {
+    anew(name) {
+        self.name = name;
+    }
+
+    get_name() {
+        return self.name;
+    }
+
+    go_to_sleep() {
+        writeln(self.name, 'is sleeping (Zzz)...');
+    }
+
+    eat() {
+        writeln(self.name, 'is eating tuna!');
+    }
+
+    play() {
+        writeln(self.name, 'is playing with a ball of yarn!');
+    }
+}
+
+interface Pet (static) {
+    get_name();
+    go_to_sleep();
+    eat();
+    play();
+}
+
+let dog = Dog("Rex");
+let cat = Cat("Whiskers");
+
+writeln('Welcome to the Virtual Pet Game!');
+writeln('Meet your virtual pets:');
+
+writeln("Dog's name:", dog.get_name());
+dog.eat();
+dog.play();
+dog.go_to_sleep();
+
+writeln();
+
+writeln("Cat's name:", cat.get_name());
+cat.eat();
+cat.play();
+cat.go_to_sleep();

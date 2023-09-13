@@ -5,7 +5,9 @@ import LexicalAnalysis.*;
 import static LexicalAnalysis.TokenType.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Parser {
     private static class ParseError extends RuntimeException {}
@@ -65,9 +67,10 @@ public class Parser {
     }
 
     private Stmt statement() {
-        return switch (tokens.get(current).type) {
+        return switch (this.peek().type) {
             case Let -> letDeclaration();
             case Struct -> structStmt();
+            case Interface -> interfaceStmt();
             case Print -> printStmt();
             case If -> ifStmt();
             case While -> whileStmt();
@@ -75,6 +78,8 @@ public class Parser {
             case Function -> function(false);
             case Return -> returnStmt();
             case LBrace -> new Stmt.Block(block());
+            case Match -> matchStmt();
+            case Range -> rangeStmt();
             default -> expressionStmt(false);
         };
     }
@@ -82,13 +87,30 @@ public class Parser {
     private Stmt structStmt() {
         eat();
         final Token name = consume(Identifier, "Expect struct-name after struct declaration.");
-        final Expr.Variable superClass;
+        final Expr.Variable structSuper;
+        final int structStatus;
         if (match(Derives)) {
             consume(Identifier, "Expect super-class name.");
-            superClass = new Expr.Variable(previous());
+            structSuper = new Expr.Variable(previous());
+            structStatus = Stmt.Struct.DERIVES;
+        } else if (match(Implements)) {
+            consume(Identifier, "Expect super-interface name.");
+            structSuper = new Expr.Variable(previous());
+            structStatus = Stmt.Struct.IMPLEMENTS;
         } else {
-            superClass = null;
+            structSuper = null;
+            structStatus = Stmt.Struct.NOTHING;
         }
+
+        final boolean isStatic;
+        if (match(LParen)) {
+            isStatic = true;
+            consume(Static, "Expect `static` after `(`");
+            consume(RParen, "Expect `)` after `static`");
+        } else {
+            isStatic = false;
+        }
+
         final List<Stmt.FunctionStmt> methods = new ArrayList<>();
 
         consume(LBrace, "Expect `{` after struct-name");
@@ -99,14 +121,50 @@ public class Parser {
 
         consume(RBrace, "Expect `}` after struct body.");
 
-        return new Stmt.Struct(name, superClass, methods);
+        return new Stmt.Struct(name, structSuper, methods, isStatic, structStatus);
+    }
+
+    private Stmt interfaceStmt() {
+        eat();
+        final Token name = consume(Identifier, "Expect interface-name after interface declaration.");
+        final boolean isStatic;
+        if (match(LParen)) {
+            isStatic = true;
+            consume(Static, "Expect `static` after `(`");
+            consume(RParen, "Expect `)` after `static`");
+        } else {
+            isStatic = false;
+        }
+
+        consume(LBrace, "Expect `{` after interface-name");
+
+        final Map<Token, Expr> methods = new HashMap<>();
+        Token methodName;
+        Expr methodArgsSize;
+
+        while (!match(RBrace)) {
+            methodName = consume(Identifier, "Expect method identifier inside of interface body");
+            consume(LParen, "Expect `(` for method args");
+            if (match(RParen)) {
+                methodArgsSize = new Expr.Literal(0.0);
+            } else {
+                methodArgsSize = expression();
+                consume(RParen, "Expect `)` after method args");
+            }
+            consume(Semicolon, "Expect `;` after interface-method");
+
+            methods.put(methodName, methodArgsSize);
+        }
+
+        return new Stmt.InterfaceStmt(name, methods, isStatic);
     }
 
     private Stmt printStmt() {
         eat();
+        final boolean newLine = !match(Bang); // ! == no-newline
         Expr value = expression();
         consume(Semicolon, "Expect `;` after value.");
-        return new Stmt.Print(value);
+        return new Stmt.Print(value, newLine);
     }
 
     private List<Stmt> block() {
@@ -192,16 +250,22 @@ public class Parser {
 
         if (!check(RParen)) {
             do {
-                if (params.size() >= 255) {
-                    throw error(peek(), "Can't have more than 255 parameters");
-                }
-
                 params.add(consume(Identifier, "Expect param name."));
             } while (match(Comma));
         }
 
         consume(RParen, "Expect `)` after " + "func" + " arguments.");
-        return new Stmt.FunctionStmt(name, params, block());
+
+        final boolean isStatic;
+        if (match(LParen)) {
+            isStatic = true;
+            consume(Static, "Expect `static` after `(`");
+            consume(RParen, "Expect `)` after `static`");
+        } else {
+            isStatic = false;
+        }
+
+        return new Stmt.FunctionStmt(name, params, block(), isStatic);
     }
 
     private Stmt returnStmt() {
@@ -214,9 +278,75 @@ public class Parser {
             value = null;
         }
 
-        consume(Semicolon, "Expected `;` after return value");
+        consume(Semicolon, "Expect `;` after return value");
 
         return new Stmt.ReturnStmt(keyword, value);
+    }
+
+    private Stmt matchStmt() {
+        eat();
+        consume(LParen, "Expect `(` after `match`");
+        final Expr matchOn = expression();
+        consume(RParen, "Expect `)` after match's expression");
+
+        final boolean isStatic;
+        if (match(LParen)) {
+            isStatic = true;
+            consume(Static, "Expect `static` after match's static declaration");
+            consume(RParen, "Expect `)` after match's `static`");
+        } else {
+            isStatic = false;
+        }
+
+        consume(LBrace, "Expect `{` after match's expression");
+
+        Expr possibility;
+        Stmt toRun;
+
+        List<Stmt.Case> cases = new ArrayList<>();
+
+        while (peek().type == Case) {
+            eat();
+            possibility = expression();
+            toRun = statement();
+            cases.add(new Stmt.Case(possibility, toRun));
+        }
+
+        consume(RBrace, "Expect `}` after match's body");
+
+        final Stmt ifAllElseFails;
+
+        if (peek().type == Else) {
+            eat();
+            ifAllElseFails = statement();
+        } else {
+            ifAllElseFails = null;
+        }
+
+        return new Stmt.Match(matchOn, cases, ifAllElseFails, isStatic);
+    }
+
+    private Stmt rangeStmt() {
+        eat();
+        consume(LParen, "Expect `(` after range");
+        final Token iterator = consume(Identifier, "Expect iterator-name in range statement");
+        consume(Colon, "Expect `:` after range-iterator");
+
+        final Expr first = expression();
+        final Stmt body;
+
+        if (match(RParen)) {
+            body = statement();
+            return new Stmt.RangeStmt(iterator, first, body);
+        } else {
+            consume(Comma, "Expect `,` after `start` in range-statement");
+            final Expr second = expression();
+            consume(Comma, "Expect `,` after `stop` in range-statement");
+            final Expr third = expression();
+            consume(RParen, "Expect `)` after `step` in range-statement");
+            body = statement();
+            return new Stmt.RangeStmt(iterator, first, second, third, body);
+        }
     }
 
     private Stmt expressionStmt(boolean forgive) {
@@ -283,7 +413,7 @@ public class Parser {
         Token operator;
         Expr right;
 
-        while (match(BangEqual, EqualEqual)) {
+        while (match(BangEqual, EqualEqual, Derives, Implements)) {
             operator = previous();
             right = comparison();
             expr = new Expr.Binary(expr, operator, right);

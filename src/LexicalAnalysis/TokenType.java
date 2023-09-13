@@ -9,6 +9,7 @@ public enum TokenType {
     Dot,
     Minus,
     Plus,
+    Colon,
     Semicolon,
     Slash,
     Star,
@@ -46,5 +47,11 @@ public enum TokenType {
     Let,
     While,
     Derives,
+    Match,
+    Case,
+    Static,
+    Interface,
+    Implements,
+    Range,
     EOF
 }

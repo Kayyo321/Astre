@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AstreInstance {
-    private final AstreStruct struct;
+    public final AstreStruct struct;
     private final Map<String, Object> fields = new HashMap<>();
 
     public AstreInstance(final AstreStruct struct) {

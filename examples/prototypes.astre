@@ -1,0 +1,15 @@
+import('io');
+
+function greet(1: (name), 2: (name, age)) {
+    match (fnid) {
+        case 1 {
+            writeln("Hi", name + "!");
+        }
+        case 2 {
+            write("Wow", name + ", you're", age, "years old!");
+        }
+    }
+}
+
+greet("Sully");
+greet("Wahid", 15);
