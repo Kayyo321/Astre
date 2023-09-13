@@ -52,9 +52,34 @@ for example:
 
 ```let!? my_variable = nothing; // constant 'nothing' value```
 
+## Printing
+
+There is an `io` library in Astre already, but you can use the built-in print system just as well (although it doesn't support printing to the Std-Err stream).
+
+```
+print "Hello, World!";
+```
+
+You can only print one value at a time, so to print on the same line, use the `!` operator after print to specify that you don't want to print a new-line.
+
+```
+print! "Hi";
+print "There";
+```
+
+of course if you want to use the bang operator like it's supposed to be used, wrap it in parenthesis:
+
+for example:
+
+```
+let my_boolean = true;
+
+print! (!my_boolean); // false
+```
+
 ## Functions
 
-In Astre, functions are defined using the `function` keyword.
+In Astre, functions are defined using the `function`, `func`, or `fn` keywords (each work the same way).
 
 for example:
 
@@ -103,6 +128,7 @@ function foo() (static) {
 ## Structs
 
 Structures in Astre are basically classes, but fields are defined dynamically, (and we love inheritance!).
+You can define them using the `struct`, or `class` keyword (both work the same).
 
 for example:
 
