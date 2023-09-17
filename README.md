@@ -362,7 +362,31 @@ match (user_num) (static) {
 
 now it will no longer loop through each case, and instead jump to the correct one.
 
-## Range
+## Loops
+
+### For
+
+The for loop in Astre is exactly as it is in javascript, C, and everything under the sun!
+
+```
+for (let i = 0; i < 10; i = i + 1) {
+   print i;
+}
+```
+
+### While
+
+The while loop in Astre is also exactly how it sounds.
+
+```
+let i = 0;
+while (i < 10) {
+   print i;
+   i = i + 1;
+}
+```
+
+### Range
 
 Range statements are made to mirror something like `python`'s for-loop iteration, they are defined as so:
 
