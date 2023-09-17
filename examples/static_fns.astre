@@ -1,0 +1,10 @@
+class Stdout {
+    writeln(xyz) (static) {
+        print xyz;
+    }
+    write(xyz) (static) {
+        print! xyz;
+    }
+}
+
+Stdout.writeln("Hello, World!");
