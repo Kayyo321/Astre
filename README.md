@@ -1,5 +1,5 @@
 # Astre
-Astre ('Celestial body' in French) is an interpreted programming language designed by AFSE [Academy For Software Engineering (High School)] students: Sullivan Baczynski-Bruce, and Wahid Hussain. Their contributions are described more in-depth later... Happy-Coding!
+Astre ('Celestial body' in French) is an interpreted programming language designed by AFSE [Academy For Software Engineering (High School)] students: Sullivan Baczynski-Bruce. Their contributions are described more in-depth later... Happy-Coding!
 
 # Theory
 
@@ -12,7 +12,7 @@ Most importantly:
 
 # Workloads
 
-This project is developed & maintained by Sullivan Baczynski-Bruce & Wahid Hussain, the following workloads show what has (and what needs to be) done by whom.
+This project is developed & maintained by Sullivan Baczynski-Bruce, the following workloads show what has (and what needs to be) done by whom.
 
 - [x] Lexical Analysis (Sully)
 - [x] Parsing (Sully)
